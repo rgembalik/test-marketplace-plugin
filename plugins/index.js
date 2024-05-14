@@ -1,10 +1,8 @@
 import { registerFn } from "../common/plugin-element-cache";
 import pluginInfo from "../plugin-manifest.json";
-import cssString from "inline:./styles/style.css";
-import { handleGridPlugin } from "./grid-renderers";
-import { handleManagePlugin } from "./manage-modal";
+import cssString from "inline:./style.css";
 
-registerFn(pluginInfo, (handler, client) => {
+registerFn(pluginInfo, (handler) => {
   /**
    * Add plugin styles to the head of the document
    */
@@ -15,10 +13,17 @@ registerFn(pluginInfo, (handler, client) => {
     document.head.appendChild(style);
   }
 
-  handler.on("flotiq.grid.cell::render", (data) =>
-    handleGridPlugin(data, client, pluginInfo),
-  );
-  handler.on("flotiq.plugins.manage::render", (data) =>
-    handleManagePlugin(data, pluginInfo),
-  );
+  // Listen for sidebar-panel::add events to intercept sidebar rendering
+  handler.on("flotiq.form.sidebar-panel::add", ({ contentObject }) => {
+    // Create div HTML element
+    const div = document.createElement("div");
+
+    // Add link inside
+    div.innerHTML = `
+          <a target="_blank" href="https://my.page.com/${contentObject.slug}">Preview</a>
+      `;
+    div.classList.add("button-for-marketplace");
+
+    return div;
+  });
 });
