@@ -32,7 +32,7 @@ jobs:
         mkdir -p output
         tar -C $BUILDFOLDER -czf output/$VERSION.tar.gz .
         
-        cp -r $BUILDFOLDER/* ouput
+        cp -r $BUILDFOLDER/* output
         entry_url="${{ github.server_url }}/${{ github.repository }}/releases/download/$VERSION/index.js" 
         jq --arg entry_url "$entry_url" '.url = $entry_url' $MANIFEST > output/plugin-manifest.json
         
