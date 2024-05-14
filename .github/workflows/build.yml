@@ -28,8 +28,14 @@ jobs:
         MANIFEST="$BUILDFOLDER/plugin-manifest.json"
         VERSION=$(jq '.version' $MANIFEST -r)
         echo "version=$VERSION"
+        
         mkdir -p output
         tar -C $BUILDFOLDER -czf output/$VERSION.tar.gz .
+        
+        cp -r $BUILDFOLDER/* ouput
+        entry_url="${{ github.server_url }}/${{ github.repository }}/releases/download/$VERSION/index.js" 
+        jq --arg entry_url "$entry_url" '.url = $entry_url' $MANIFEST > output/plugin-manifest.json
+        
         ls -la output
         echo "version=$VERSION" >> $GITHUB_ENV
     - name: Create artifact 
