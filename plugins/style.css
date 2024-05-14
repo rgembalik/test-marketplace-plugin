@@ -1,7 +1,12 @@
 .button-for-marketplace {
-  background: salmon;
-  padding: 1rem;
+  background: lightgreen;
   margin: 0 0 2rem 0;
   border-radius: 1rem;
   text-align: center;
+}
+
+.button-for-marketplace a {
+  display: block;
+  padding: 1rem;
+  width: 100%;
 }
