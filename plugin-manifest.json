@@ -2,7 +2,7 @@
   "id": "rgembalik.plugin-for-marketplace",
   "name": "Test Plugin for Marketplace <New>",
   "description": "Test Plugin for Marketplace. This plugin is used for testing purposes only. It adds a new button for each object.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "repository": "https://github.com/rgembalik/test-marketplace-plugin",
   "url": "https://localhost:3053/index.js"
 }

@@ -27,4 +27,42 @@ registerFn(pluginInfo, (handler) => {
 
     return div;
   });
+
+  handler.on("flotiq.plugins.manage::form-schema", () => {
+    return {
+      schema: {
+        id: pluginInfo.id,
+        schemaDefinition: {
+          type: "object",
+          allOf: [
+            {
+              $ref: "#/components/schemas/AbstractContentTypeSchemaDefinition",
+            },
+            {
+              type: "object",
+              properties: {
+                text: {
+                  type: "string",
+                  minLength: 1,
+                },
+              },
+            },
+          ],
+          required: ["text"],
+          additionalProperties: false,
+        },
+        metaDefinition: {
+          order: ["text"],
+          propertiesConfig: {
+            text: {
+              label: "Text",
+              unique: false,
+              helpText: "",
+              inputType: "text",
+            },
+          },
+        },
+      },
+    };
+  });
 });
