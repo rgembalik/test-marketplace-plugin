@@ -15,6 +15,7 @@ registerFn(pluginInfo, (handler) => {
 
   // Listen for sidebar-panel::add events to intercept sidebar rendering
   handler.on("flotiq.form.sidebar-panel::add", ({ contentObject }) => {
+    if (!contentObject?.slug) return null;
     // Create div HTML element
     const div = document.createElement("div");
 
