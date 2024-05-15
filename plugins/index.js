@@ -2,6 +2,34 @@ import { registerFn } from "../common/plugin-element-cache";
 import pluginInfo from "../plugin-manifest.json";
 import cssString from "inline:./style.css";
 
+const settingsMigrations = [
+  {
+    from: "1.4.2",
+    to: "1.4.3",
+    migration: (settings) => {
+      settings.version = "1.4.3";
+      settings.field_from_1_4_2 = "migrated";
+    },
+  },
+  {
+    from: "1.4.3",
+    to: "1.5.0",
+    migration: (settings) => {
+      settings.version = "1.5.0";
+      settings.field_from_1_5 = "migrated";
+      settings.somefield = 123;
+    },
+  },
+  {
+    from: "1.5.0",
+    to: "1.5.1",
+    migration: (settings) => {
+      settings.version = "1.5.1";
+      settings.field_from_1_5 = "migrated 2";
+    },
+  },
+];
+
 registerFn(pluginInfo, (handler) => {
   /**
    * Add plugin styles to the head of the document
@@ -27,8 +55,21 @@ registerFn(pluginInfo, (handler) => {
 
     return div;
   });
-  handler.on("flotiq.plugins::update", (info) => {
-    console.log(info);
+  handler.on("flotiq.plugins::update", ({ previousVersion, newVersion }) => {
+    console.log("previousVersion, newVersion", previousVersion, newVersion);
+    let migration;
+    let settings = previousVersion.settings;
+    let versionNumber = previousVersion.version;
+    while (
+      (migration = settingsMigrations.find((m) => m.from === versionNumber))
+    ) {
+      console.log("Applying migration", migration.from, "=>", migration.to);
+      settings = JSON.stringify(
+        migration.migration(settings ? JSON.parse(settings) : {}),
+      );
+      versionNumber = migration.to;
+    }
+    console.log("Final settings", settings);
   });
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
