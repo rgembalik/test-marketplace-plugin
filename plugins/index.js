@@ -1,6 +1,7 @@
 import { registerFn } from "../common/plugin-element-cache";
 import pluginInfo from "../plugin-manifest.json";
 import cssString from "inline:./style.css";
+import semver from "semver";
 
 const settingsMigrations = [
   {
@@ -23,7 +24,7 @@ const settingsMigrations = [
     },
   },
   {
-    from: "1.5.0",
+    from: "1.5.1",
     to: "1.5.2",
     migration: (settings) => {
       settings.version = "1.5.2";
@@ -58,6 +59,7 @@ registerFn(pluginInfo, (handler) => {
 
     return div;
   });
+
   handler.on("flotiq.plugins::update", ({ previousVersion, newVersion }) => {
     console.log("previousVersion, newVersion", previousVersion, newVersion);
     let migration;
@@ -66,7 +68,9 @@ registerFn(pluginInfo, (handler) => {
       : {};
     let versionNumber = previousVersion.version;
     while (
-      (migration = settingsMigrations.find((m) => m.from === versionNumber))
+      (migration = settingsMigrations.find((m) =>
+        semver.gte(versionNumber, m.from),
+      ))
     ) {
       console.log("Applying migration", migration.from, "=>", migration.to);
       settings = migration.migration(settings);
@@ -75,6 +79,7 @@ registerFn(pluginInfo, (handler) => {
     console.log("Final settings", settings);
     return settings;
   });
+
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
       schema: {
