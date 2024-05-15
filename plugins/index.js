@@ -27,7 +27,9 @@ registerFn(pluginInfo, (handler) => {
 
     return div;
   });
-
+  handler.on("flotiq.plugins::update", (info) => {
+    console.log(info);
+  });
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
       schema: {
