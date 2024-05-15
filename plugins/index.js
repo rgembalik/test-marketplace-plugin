@@ -61,18 +61,19 @@ registerFn(pluginInfo, (handler) => {
   handler.on("flotiq.plugins::update", ({ previousVersion, newVersion }) => {
     console.log("previousVersion, newVersion", previousVersion, newVersion);
     let migration;
-    let settings = previousVersion.settings;
+    let settings = previousVersion.settings
+      ? JSON.parse(previousVersion.settings)
+      : {};
     let versionNumber = previousVersion.version;
     while (
       (migration = settingsMigrations.find((m) => m.from === versionNumber))
     ) {
       console.log("Applying migration", migration.from, "=>", migration.to);
-      settings = JSON.stringify(
-        migration.migration(settings ? JSON.parse(settings) : {}),
-      );
+      settings = migration.migration(settings);
       versionNumber = migration.to;
     }
     console.log("Final settings", settings);
+    return settings;
   });
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
