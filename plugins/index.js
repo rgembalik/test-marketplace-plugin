@@ -9,6 +9,7 @@ const settingsMigrations = [
     migration: (settings) => {
       settings.version = "1.4.3";
       settings.field_from_1_4_2 = "migrated";
+      return settings;
     },
   },
   {
@@ -18,14 +19,16 @@ const settingsMigrations = [
       settings.version = "1.5.0";
       settings.field_from_1_5 = "migrated";
       settings.somefield = 123;
+      return settings;
     },
   },
   {
     from: "1.5.0",
-    to: "1.5.1",
+    to: "1.5.2",
     migration: (settings) => {
-      settings.version = "1.5.1";
+      settings.version = "1.5.2";
       settings.field_from_1_5 = "migrated 2";
+      return settings;
     },
   },
 ];
