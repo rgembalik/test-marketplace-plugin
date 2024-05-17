@@ -62,11 +62,21 @@ registerFn(pluginInfo, (handler) => {
 
   handler.on("flotiq.plugins::update", ({ previousVersion, newVersion }) => {
     console.log("previousVersion, newVersion", previousVersion, newVersion);
-    let migration;
+
     let settings = previousVersion.settings
       ? JSON.parse(previousVersion.settings)
       : {};
     let versionNumber = previousVersion.version;
+
+    window.migratePackage = {
+      previousVersion,
+      newVersion,
+      settings,
+      semver,
+      settingsMigrations,
+    };
+
+    let migration;
     while (
       (migration = settingsMigrations.find(
         (m) =>
