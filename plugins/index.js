@@ -68,19 +68,12 @@ registerFn(pluginInfo, (handler) => {
       : {};
     let versionNumber = previousVersion.version;
 
-    window.migratePackage = {
-      previousVersion,
-      newVersion,
-      settings,
-      semver,
-      settingsMigrations,
-    };
-
     let migration;
     while (
       (migration = settingsMigrations.find(
         (m) =>
-          semver.gte(m.from, versionNumber) && semver.lt(m.to, versionNumber),
+          // migration.from <= versionNumber < migration.to
+          semver.gte(m.from, versionNumber) && semver.lt(versionNumber, m.to),
       ))
     ) {
       console.log("Applying migration", migration.from, "=>", migration.to);
