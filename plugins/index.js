@@ -8,7 +8,7 @@ const settingsMigrations = [
     from: "1.4.2",
     to: "1.4.3",
     migration: (settings) => {
-      settings.version = "1.4.3";
+      settings.last_seen_version = "1.4.3";
       settings.field_from_1_4_2 = "migrated";
       return settings;
     },
@@ -17,7 +17,7 @@ const settingsMigrations = [
     from: "1.4.3",
     to: "1.5.0",
     migration: (settings) => {
-      settings.version = "1.5.0";
+      settings.last_seen_version = "1.5.0";
       settings.field_from_1_5 = "migrated";
       settings.somefield = 123;
       return settings;
@@ -27,14 +27,61 @@ const settingsMigrations = [
     from: "1.5.1",
     to: "1.5.2",
     migration: (settings) => {
-      settings.version = "1.5.2";
+      settings.last_seen_version = "1.5.2";
       settings.field_from_1_5 = "migrated 2";
+      return settings;
+    },
+  },
+  {
+    from: "1.5.7",
+    to: "1.5.8",
+    migration: async (settings, { openSchemaModal }) => {
+      const petName = await openSchemaModal({
+        title: "Whats your pets name?",
+        form: {
+          schema: {
+            id: "mycompany.pet-modal",
+            schemaDefinition: {
+              type: "object",
+              allOf: [
+                {
+                  $ref: "#/components/schemas/AbstractContentTypeSchemaDefinition",
+                },
+                {
+                  type: "object",
+                  properties: {
+                    pet_name: {
+                      type: "string",
+                      minLength: 1,
+                    },
+                  },
+                },
+              ],
+              required: ["pet_name"],
+              additionalProperties: false,
+            },
+            metaDefinition: {
+              order: ["pet_name"],
+              propertiesConfig: {
+                pet_name: {
+                  label: "Pet Name",
+                  unique: false,
+                  helpText: "",
+                  inputType: "text",
+                },
+              },
+            },
+          },
+        },
+      });
+      settings.last_seen_version = "1.5.8";
+      settings.petName = petName.pet_name;
       return settings;
     },
   },
 ];
 
-registerFn(pluginInfo, (handler) => {
+registerFn(pluginInfo, (handler, _, globals) => {
   /**
    * Add plugin styles to the head of the document
    */
@@ -60,29 +107,32 @@ registerFn(pluginInfo, (handler) => {
     return div;
   });
 
-  handler.on("flotiq.plugins::update", ({ previousVersion, newVersion }) => {
-    console.log("previousVersion, newVersion", previousVersion, newVersion);
+  handler.on(
+    "flotiq.plugins::update",
+    async ({ previousVersion, newVersion }) => {
+      console.log("previousVersion, newVersion", previousVersion, newVersion);
 
-    let settings = previousVersion.settings
-      ? JSON.parse(previousVersion.settings)
-      : {};
-    let versionNumber = previousVersion.version;
+      let settings = previousVersion.settings
+        ? JSON.parse(previousVersion.settings)
+        : {};
+      let versionNumber = previousVersion.version;
 
-    let migration;
-    while (
-      (migration = settingsMigrations.find(
-        (m) =>
-          // migration.from <= versionNumber < migration.to
-          semver.gte(m.from, versionNumber) && semver.lt(versionNumber, m.to),
-      ))
-    ) {
-      console.log("Applying migration", migration.from, "=>", migration.to);
-      settings = migration.migration(settings);
-      versionNumber = migration.to;
-    }
-    console.log("Final settings", settings);
-    return settings;
-  });
+      let migration;
+      while (
+        (migration = settingsMigrations.find(
+          (m) =>
+            // migration.from <= versionNumber < migration.to
+            semver.gte(m.from, versionNumber) && semver.lt(versionNumber, m.to),
+        ))
+      ) {
+        console.log("Applying migration", migration.from, "=>", migration.to);
+        settings = await migration.migration(settings, globals);
+        versionNumber = migration.to;
+      }
+      console.log("Final settings", settings);
+      return settings;
+    },
+  );
 
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
