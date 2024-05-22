@@ -108,7 +108,7 @@ registerFn(pluginInfo, (handler, _, globals) => {
   });
 
   handler.on(
-    "flotiq.plugins::update",
+    "flotiq.plugin::migrate",
     async ({ previousVersion, newVersion }) => {
       console.log("previousVersion, newVersion", previousVersion, newVersion);
 
