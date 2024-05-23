@@ -5,42 +5,44 @@ import semver from "semver";
 
 const settingsMigrations = [
   {
-    from: "1.4.2",
-    to: "1.4.3",
+    from: "1.0.0",
+    to: "1.1.0",
+    migration: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      return {
+        last_seen_version: "1.0.0",
+        field_to_update: "It's string",
+      };
+    },
+  },
+  {
+    from: "1.1.0",
+    to: "1.1.1",
     migration: (settings) => {
-      settings.last_seen_version = "1.4.3";
-      settings.field_from_1_4_2 = "migrated";
+      settings.last_seen_version = "1.1.0";
+      settings.field_to_update += " that is combined with value";
       return settings;
     },
   },
   {
-    from: "1.4.3",
-    to: "1.5.0",
+    from: "1.1.1",
+    to: "1.1.2",
     migration: (settings) => {
-      settings.last_seen_version = "1.5.0";
-      settings.field_from_1_5 = "migrated";
-      settings.somefield = 123;
+      settings.last_seen_version = "1.1.1";
+      settings.field_to_update += " from previous version.";
       return settings;
     },
   },
   {
-    from: "1.5.1",
-    to: "1.5.2",
-    migration: (settings) => {
-      settings.last_seen_version = "1.5.2";
-      settings.field_from_1_5 = "migrated 2";
-      return settings;
-    },
-  },
-  {
-    from: "1.5.7",
-    to: "1.5.8",
+    from: "1.1.2",
+    to: "1.2.0",
     migration: async (settings, { openSchemaModal }) => {
-      const petName = await openSchemaModal({
-        title: "Whats your pets name?",
+      const modalForm = await openSchemaModal({
+        size: "xl",
+        title: "You can now update this field here!",
         form: {
           schema: {
-            id: "mycompany.pet-modal",
+            id: "mycompany.migration-update",
             schemaDefinition: {
               type: "object",
               allOf: [
@@ -50,21 +52,21 @@ const settingsMigrations = [
                 {
                   type: "object",
                   properties: {
-                    pet_name: {
+                    field_to_update: {
                       type: "string",
                       minLength: 1,
                     },
                   },
                 },
               ],
-              required: ["pet_name"],
+              required: ["field_to_update"],
               additionalProperties: false,
             },
             metaDefinition: {
-              order: ["pet_name"],
+              order: ["field_to_update"],
               propertiesConfig: {
-                pet_name: {
-                  label: "Pet Name",
+                field_to_update: {
+                  label: "Field to update",
                   unique: false,
                   helpText: "",
                   inputType: "text",
@@ -74,8 +76,9 @@ const settingsMigrations = [
           },
         },
       });
-      settings.last_seen_version = "1.5.8";
-      settings.petName = petName.pet_name;
+      settings.last_seen_version = "1.1.2";
+      settings.field_to_update += " And this is value that user provided: ";
+      settings.field_to_update += modalForm.field_to_update;
       return settings;
     },
   },
@@ -130,14 +133,18 @@ registerFn(pluginInfo, (handler, _, globals) => {
         versionNumber = migration.to;
       }
       console.log("Final settings", settings);
-      return settings;
+      return JSON.stringify(settings);
     },
   );
 
   handler.on("flotiq.plugins.manage::form-schema", () => {
     return {
       schema: {
-        id: pluginInfo.id,
+        id: "test-plugin-settings",
+        name: "test_plugin",
+        label: "test plugin",
+        workflowId: "generic",
+        internal: false,
         schemaDefinition: {
           type: "object",
           allOf: [
@@ -147,23 +154,35 @@ registerFn(pluginInfo, (handler, _, globals) => {
             {
               type: "object",
               properties: {
-                text: {
+                field_to_update: {
                   type: "string",
-                  minLength: 1,
+                },
+                last_seen_version: {
+                  type: "string",
+                  default: "1.0.0",
                 },
               },
             },
           ],
-          required: ["text"],
+          required: [],
           additionalProperties: false,
         },
         metaDefinition: {
-          order: ["text"],
+          order: ["last_seen_version", "field_to_update"],
           propertiesConfig: {
-            text: {
-              label: "Text",
+            field_to_update: {
+              label: "Field to update",
               unique: false,
               helpText: "",
+              readonly: true,
+              inputType: "text",
+              default: "",
+            },
+            last_seen_version: {
+              label: "Last seen version",
+              unique: false,
+              helpText: "",
+              readonly: true,
               inputType: "text",
             },
           },
